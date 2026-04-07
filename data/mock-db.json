@@ -1,0 +1,381 @@
+{
+  "serviceCategories": [
+    {
+      "id": "cheveux",
+      "label": "Cheveux",
+      "description": "Coupe, coiffage, couleur et soins brillants."
+    },
+    {
+      "id": "beaute_bien_etre",
+      "label": "Beaut\u00e9 et bien-\u00eatre",
+      "description": "Mise en beaut\u00e9, manucure et moments de d\u00e9tente."
+    }
+  ],
+  "services": [
+    {
+      "id": "service_hair_signature",
+      "categoryId": "cheveux",
+      "name": "Brushing signature",
+      "description": "Mise en forme souple avec finition glossy.",
+      "priceDzd": 3500,
+      "durationMinutes": 45,
+      "active": true,
+      "featured": true,
+      "order": 1
+    },
+    {
+      "id": "service_hair_color",
+      "categoryId": "cheveux",
+      "name": "Couleur racines",
+      "description": "Retouche propre et brillance homog\u00e8ne.",
+      "priceDzd": 6500,
+      "durationMinutes": 90,
+      "active": true,
+      "featured": true,
+      "order": 2
+    },
+    {
+      "id": "service_hair_care",
+      "categoryId": "cheveux",
+      "name": "Soin profond",
+      "description": "Nutrition intense et discipline anti-frisottis.",
+      "priceDzd": 4200,
+      "durationMinutes": 50,
+      "active": true,
+      "featured": false,
+      "order": 3
+    },
+    {
+      "id": "service_cut_styling",
+      "categoryId": "cheveux",
+      "name": "Coupe + brushing",
+      "description": "Coupe sur mesure avec coiffage final.",
+      "priceDzd": 5200,
+      "durationMinutes": 75,
+      "active": true,
+      "featured": true,
+      "order": 4
+    },
+    {
+      "id": "service_makeup",
+      "categoryId": "beaute_bien_etre",
+      "name": "Maquillage \u00e9clat",
+      "description": "Teint lumineux et regard d\u00e9fini pour vos sorties.",
+      "priceDzd": 5500,
+      "durationMinutes": 60,
+      "active": true,
+      "featured": true,
+      "order": 5
+    },
+    {
+      "id": "service_manicure",
+      "categoryId": "beaute_bien_etre",
+      "name": "Manucure premium",
+      "description": "Soin complet des mains avec finition parfaite.",
+      "priceDzd": 2800,
+      "durationMinutes": 35,
+      "active": true,
+      "featured": false,
+      "order": 6
+    },
+    {
+      "id": "service_pedicure",
+      "categoryId": "beaute_bien_etre",
+      "name": "P\u00e9dicure spa",
+      "description": "D\u00e9tente, mise en beaut\u00e9 et confort durable.",
+      "priceDzd": 3200,
+      "durationMinutes": 40,
+      "active": true,
+      "featured": false,
+      "order": 7
+    },
+    {
+      "id": "service_brows",
+      "categoryId": "beaute_bien_etre",
+      "name": "Sourcils dessin\u00e9s",
+      "description": "Ligne nette et harmonieuse adapt\u00e9e au visage.",
+      "priceDzd": 1800,
+      "durationMinutes": 25,
+      "active": true,
+      "featured": false,
+      "order": 8
+    }
+  ],
+  "businessSettings": {
+    "salonName": "Glam Lyn",
+    "tagline": "Beaut\u00e9 locale, toucher premium, parcours simple au t\u00e9l\u00e9phone.",
+    "heroEyebrow": "Centre de beaut\u00e9 \u00e0 Alger",
+    "heroTitle": "Le rendez-vous qui fait briller vos cheveux, votre peau et votre journ\u00e9e.",
+    "heroDescription": "Un parcours rapide, des prestations claires, un suivi SMS et une \u00e9quipe qui garde le planning parfaitement fluide.",
+    "announcement": "Paiement sur place. Compte client facultatif avec points de fid\u00e9lit\u00e9 \u00e0 chaque r\u00e9servation.",
+    "phone": "+213550123456",
+    "whatsapp": "+213550123456",
+    "address": "12 Rue Didouche Mourad, Alger",
+    "city": "Alger",
+    "timezone": "Africa/Algiers",
+    "bookingLeadHours": 2,
+    "selfServiceChangeHours": 12,
+    "closedDates": [],
+    "loyaltyCopy": "Cr\u00e9ez votre compte et gagnez 1 point maintenant, puis 1 point \u00e0 chaque r\u00e9servation.",
+    "instagramHandle": "@glamlynbeauty",
+    "googlePlaceLabel": "Glam Lyn sur Google",
+    "openingHours": [
+      { "day": 0, "label": "Dimanche", "open": null, "close": null },
+      { "day": 1, "label": "Lundi", "open": "09:00", "close": "18:00" },
+      { "day": 2, "label": "Mardi", "open": "09:00", "close": "18:00" },
+      { "day": 3, "label": "Mercredi", "open": "09:00", "close": "18:00" },
+      { "day": 4, "label": "Jeudi", "open": "09:00", "close": "18:00" },
+      { "day": 5, "label": "Vendredi", "open": "09:30", "close": "18:30" },
+      { "day": 6, "label": "Samedi", "open": "10:00", "close": "17:00" }
+    ]
+  },
+  "mediaAssets": [
+    {
+      "id": "media_hero_1",
+      "label": "Hero salon",
+      "alt": "Ambiance douce et lumineuse du salon Glam Lyn",
+      "section": "hero",
+      "src": "/placeholders/hero-salon.svg",
+      "kind": "seed",
+      "order": 1,
+      "uploadedAt": "2026-04-01T10:00:00+01:00"
+    },
+    {
+      "id": "media_hero_2",
+      "label": "Hero detail",
+      "alt": "D\u00e9tail d'une mise en beaut\u00e9 aux tons ivoire et or",
+      "section": "hero",
+      "src": "/placeholders/hero-detail.svg",
+      "kind": "seed",
+      "order": 2,
+      "uploadedAt": "2026-04-01T10:00:00+01:00"
+    },
+    {
+      "id": "media_gallery_1",
+      "label": "Soin premium",
+      "alt": "Mise en sc\u00e8ne d'un soin premium Glam Lyn",
+      "section": "gallery",
+      "src": "/placeholders/gallery-care.svg",
+      "kind": "seed",
+      "order": 1,
+      "uploadedAt": "2026-04-01T10:00:00+01:00"
+    },
+    {
+      "id": "media_gallery_2",
+      "label": "Beaut\u00e9 mains",
+      "alt": "Visuel d'une finition soign\u00e9e pour les mains",
+      "section": "gallery",
+      "src": "/placeholders/gallery-polish.svg",
+      "kind": "seed",
+      "order": 2,
+      "uploadedAt": "2026-04-01T10:00:00+01:00"
+    }
+  ],
+  "customers": [
+    {
+      "id": "customer_nadia",
+      "name": "Nadia K.",
+      "phone": "+213660101010",
+      "email": "nadia@example.com",
+      "points": 4,
+      "hasAccount": true,
+      "createdAt": "2026-03-02T09:00:00+01:00",
+      "updatedAt": "2026-04-06T18:00:00+01:00"
+    },
+    {
+      "id": "customer_sonia",
+      "name": "Sonia M.",
+      "phone": "+213660202020",
+      "email": "sonia@example.com",
+      "points": 2,
+      "hasAccount": true,
+      "createdAt": "2026-03-20T10:15:00+01:00",
+      "updatedAt": "2026-04-05T13:30:00+01:00"
+    },
+    {
+      "id": "customer_fatima",
+      "name": "Fatima R.",
+      "phone": "+213660303030",
+      "email": "",
+      "points": 0,
+      "hasAccount": false,
+      "createdAt": "2026-04-02T11:10:00+01:00",
+      "updatedAt": "2026-04-02T11:10:00+01:00"
+    }
+  ],
+  "bookings": [
+    {
+      "id": "booking_upcoming_1",
+      "customerId": "customer_nadia",
+      "serviceIds": ["service_hair_signature", "service_manicure"],
+      "totalPriceDzd": 6300,
+      "totalDurationMinutes": 80,
+      "startsAt": "2026-04-09T10:00:00+01:00",
+      "endsAt": "2026-04-09T11:20:00+01:00",
+      "status": "confirmed",
+      "source": "account",
+      "notes": "Pr\u00e9f\u00e8re une finition souple.",
+      "createdAt": "2026-04-06T11:20:00+01:00",
+      "updatedAt": "2026-04-06T11:20:00+01:00"
+    },
+    {
+      "id": "booking_upcoming_2",
+      "customerId": "customer_sonia",
+      "serviceIds": ["service_makeup"],
+      "totalPriceDzd": 5500,
+      "totalDurationMinutes": 60,
+      "startsAt": "2026-04-09T13:30:00+01:00",
+      "endsAt": "2026-04-09T14:30:00+01:00",
+      "status": "confirmed",
+      "source": "account",
+      "notes": "",
+      "createdAt": "2026-04-06T13:00:00+01:00",
+      "updatedAt": "2026-04-06T13:00:00+01:00"
+    },
+    {
+      "id": "booking_upcoming_3",
+      "customerId": "customer_fatima",
+      "serviceIds": ["service_cut_styling"],
+      "totalPriceDzd": 5200,
+      "totalDurationMinutes": 75,
+      "startsAt": "2026-04-10T11:00:00+01:00",
+      "endsAt": "2026-04-10T12:15:00+01:00",
+      "status": "confirmed",
+      "source": "guest",
+      "notes": "",
+      "createdAt": "2026-04-06T16:40:00+01:00",
+      "updatedAt": "2026-04-06T16:40:00+01:00"
+    },
+    {
+      "id": "booking_past_1",
+      "customerId": "customer_nadia",
+      "serviceIds": ["service_hair_care"],
+      "totalPriceDzd": 4200,
+      "totalDurationMinutes": 50,
+      "startsAt": "2026-04-03T15:00:00+01:00",
+      "endsAt": "2026-04-03T15:50:00+01:00",
+      "status": "completed",
+      "source": "account",
+      "notes": "",
+      "createdAt": "2026-04-01T12:30:00+01:00",
+      "updatedAt": "2026-04-03T16:10:00+01:00"
+    }
+  ],
+  "siteReviews": [
+    {
+      "id": "review_site_1",
+      "customerId": "customer_nadia",
+      "bookingId": "booking_past_1",
+      "rating": 5,
+      "text": "R\u00e9servation simple sur t\u00e9l\u00e9phone, accueil soign\u00e9 et cheveux vraiment brillants.",
+      "status": "published",
+      "createdAt": "2026-04-04T09:20:00+01:00"
+    },
+    {
+      "id": "review_site_2",
+      "customerId": "customer_sonia",
+      "bookingId": "booking_upcoming_2",
+      "rating": 5,
+      "text": "Le salon r\u00e9pond vite, les horaires sont clairs et le rappel SMS rassure beaucoup.",
+      "status": "published",
+      "createdAt": "2026-04-05T10:05:00+01:00"
+    },
+    {
+      "id": "review_site_3",
+      "customerId": "customer_sonia",
+      "bookingId": "booking_upcoming_2",
+      "rating": 4,
+      "text": "J'aimerais encore plus de photos r\u00e9elles dans la galerie.",
+      "status": "pending",
+      "createdAt": "2026-04-06T17:10:00+01:00"
+    }
+  ],
+  "googleReviewSnapshots": [
+    {
+      "id": "google_1",
+      "authorName": "Meriem B.",
+      "rating": 5,
+      "text": "Salon tr\u00e8s propre, brushing impeccable et accueil tr\u00e8s doux.",
+      "relativeTimeDescription": "il y a 2 semaines",
+      "createdAt": "2026-03-25T08:00:00+01:00"
+    },
+    {
+      "id": "google_2",
+      "authorName": "Linda A.",
+      "rating": 5,
+      "text": "Ponctuelles, professionnelles et les prix sont affich\u00e9s clairement.",
+      "relativeTimeDescription": "il y a 1 mois",
+      "createdAt": "2026-03-04T08:00:00+01:00"
+    },
+    {
+      "id": "google_3",
+      "authorName": "Sara T.",
+      "rating": 4,
+      "text": "Le rappel avant le rendez-vous est pratique, surtout quand on r\u00e9serve vite.",
+      "relativeTimeDescription": "il y a 1 mois",
+      "createdAt": "2026-03-01T08:00:00+01:00"
+    }
+  ],
+  "instagramReels": [
+    {
+      "id": "reel_1",
+      "title": "Brushing glossy",
+      "caption": "Une finition lisse, lumineuse et rapide \u00e0 vivre sur mobile.",
+      "externalCoverUrl": "/placeholders/hero-salon.svg",
+      "reelUrl": "https://www.instagram.com/reel/C9GLAMLyn01/",
+      "published": true,
+      "order": 1
+    },
+    {
+      "id": "reel_2",
+      "title": "Avant / apr\u00e8s couleur",
+      "caption": "Un rendu propre et r\u00e9gulier, pens\u00e9 pour les clientes locales.",
+      "externalCoverUrl": "/placeholders/gallery-care.svg",
+      "reelUrl": "https://www.instagram.com/reel/C9GLAMLyn02/",
+      "published": true,
+      "order": 2
+    },
+    {
+      "id": "reel_3",
+      "title": "Routine mains premium",
+      "caption": "Une section g\u00e9r\u00e9e par l'admin pour pousser les derniers contenus.",
+      "externalCoverUrl": "/placeholders/gallery-polish.svg",
+      "reelUrl": "https://www.instagram.com/reel/C9GLAMLyn03/",
+      "published": true,
+      "order": 3
+    }
+  ],
+  "adminUsers": [
+    {
+      "id": "admin_owner",
+      "username": "owner-glamlyn",
+      "passwordHash": "62addf07d1153f2b43b4fed70e365ffc8d678afc1eba4cba9f00b89e1bf5593f",
+      "displayName": "Owner Glam Lyn",
+      "active": true,
+      "lastLoginAt": ""
+    },
+    {
+      "id": "admin_manager",
+      "username": "manager-glamlyn",
+      "passwordHash": "62addf07d1153f2b43b4fed70e365ffc8d678afc1eba4cba9f00b89e1bf5593f",
+      "displayName": "Manager Glam Lyn",
+      "active": true,
+      "lastLoginAt": ""
+    }
+  ],
+  "adminSessions": [],
+  "customerSessions": [],
+  "otpSessions": [],
+  "notificationLogs": [
+    {
+      "id": "notif_seed_1",
+      "type": "booking_confirmation",
+      "channel": "sms",
+      "recipient": "+213660101010",
+      "message": "Glam Lyn: reservation confirmee pour le jeudi 9 avril 2026 a 10:00.",
+      "status": "mocked",
+      "provider": "mock",
+      "createdAt": "2026-04-06T11:21:00+01:00"
+    }
+  ]
+}

@@ -1,0 +1,35 @@
+import type { Metadata } from "next";
+import { Cormorant_Garamond, Manrope } from "next/font/google";
+import "./globals.css";
+
+const displayFont = Cormorant_Garamond({
+  variable: "--font-display",
+  subsets: ["latin"],
+  weight: ["400", "500", "600", "700"],
+});
+
+const bodyFont = Manrope({
+  variable: "--font-body",
+  subsets: ["latin"],
+  weight: ["400", "500", "600", "700", "800"],
+});
+
+export const metadata: Metadata = {
+  title: "Glam Lyn | Centre de beauté à Alger",
+  description:
+    "Réservation phone-first, galerie du salon, fidélité, avis et suivi SMS pour Glam Lyn.",
+};
+
+export default function RootLayout({
+  children,
+}: Readonly<{
+  children: React.ReactNode;
+}>) {
+  return (
+    <html lang="fr" className={`${displayFont.variable} ${bodyFont.variable} h-full`}>
+      <body className="min-h-full bg-[var(--surface)] font-[family-name:var(--font-body)] text-[var(--ink)] antialiased">
+        {children}
+      </body>
+    </html>
+  );
+}

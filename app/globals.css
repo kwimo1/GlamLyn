@@ -1,0 +1,136 @@
+@import "tailwindcss";
+
+:root {
+  --surface: #f8f3ea;
+  --surface-strong: #f2e8d8;
+  --surface-contrast: #fffdf8;
+  --ink: #241a13;
+  --muted-ink: #6b5747;
+  --gold: #b58a47;
+  --gold-deep: #89612a;
+  --line: rgba(36, 26, 19, 0.12);
+  --shadow-soft: 0 30px 60px rgba(36, 26, 19, 0.1);
+}
+
+@theme inline {
+  --color-background: var(--surface);
+  --color-foreground: var(--ink);
+  --font-sans: var(--font-body);
+  --font-mono: var(--font-body);
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html {
+  scroll-behavior: smooth;
+}
+
+body {
+  background:
+    radial-gradient(circle at top left, rgba(229, 207, 171, 0.4), transparent 28%),
+    linear-gradient(180deg, #fbf7f1 0%, var(--surface) 42%, #f3eadc 100%);
+  color: var(--ink);
+}
+
+a {
+  color: inherit;
+  text-decoration: none;
+}
+
+img {
+  max-width: 100%;
+  display: block;
+}
+
+::selection {
+  background: rgba(181, 138, 71, 0.22);
+}
+
+.page-frame {
+  margin-inline: auto;
+  width: min(100%, 1200px);
+}
+
+.glass-panel {
+  background: rgba(255, 251, 244, 0.72);
+  backdrop-filter: blur(20px);
+}
+
+.luxury-border {
+  border: 1px solid rgba(137, 97, 42, 0.18);
+}
+
+.hairline {
+  border-color: var(--line);
+}
+
+.poster-shadow {
+  box-shadow: var(--shadow-soft);
+}
+
+.cta-button {
+  min-height: 48px;
+  border-radius: 999px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding-inline: 1.25rem;
+  font-weight: 700;
+}
+
+.elevated-card {
+  border: 1px solid rgba(137, 97, 42, 0.12);
+  background: rgba(255, 252, 248, 0.88);
+  box-shadow: 0 16px 32px rgba(36, 26, 19, 0.06);
+}
+
+.ambient-grid {
+  background-image:
+    linear-gradient(rgba(137, 97, 42, 0.08) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(137, 97, 42, 0.08) 1px, transparent 1px);
+  background-size: 32px 32px;
+  background-position: center center;
+}
+
+.reveal-up {
+  animation: reveal-up 700ms cubic-bezier(0.2, 0.7, 0.2, 1) both;
+}
+
+.shimmer {
+  position: relative;
+  overflow: hidden;
+}
+
+.shimmer::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(
+    110deg,
+    transparent 0%,
+    rgba(255, 255, 255, 0.35) 45%,
+    transparent 90%
+  );
+  transform: translateX(-100%);
+  animation: shimmer 6s linear infinite;
+}
+
+@keyframes reveal-up {
+  from {
+    opacity: 0;
+    transform: translateY(22px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes shimmer {
+  to {
+    transform: translateX(120%);
+  }
+}
