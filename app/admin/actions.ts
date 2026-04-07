@@ -3,7 +3,7 @@
 import { promises as fs } from "node:fs";
 import path from "node:path";
 import { getAdminSession } from "@/lib/auth";
-import { readDb } from "@/lib/mock-db";
+import { getWritableUploadsDir, readDb } from "@/lib/mock-db";
 import {
   addUploadedMedia,
   cancelBookingByAdmin,
@@ -104,7 +104,12 @@ export async function uploadMediaAction(formData: FormData) {
 
   const mediaId = generateId("media");
   const extension = file.name.split(".").pop() || "bin";
-  const storagePath = path.join(process.cwd(), "data", "uploads", `${mediaId}.${extension}`);
+  const uploadsDir = await getWritableUploadsDir();
+  if (!uploadsDir) {
+    throw new Error("Stockage média temporairement indisponible.");
+  }
+
+  const storagePath = path.join(uploadsDir, `${mediaId}.${extension}`);
   const arrayBuffer = await file.arrayBuffer();
   await fs.writeFile(storagePath, Buffer.from(arrayBuffer));
 

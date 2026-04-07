@@ -187,7 +187,7 @@ export default async function HomePage() {
         </div>
       </section>
 
-      <section className="page-frame px-4 py-14 sm:px-6">
+      <section id="reels" className="page-frame scroll-mt-32 px-4 py-14 sm:px-6">
         <SectionHeading
           eyebrow="Avis"
           title="Des retours de clientes du site et de Google."

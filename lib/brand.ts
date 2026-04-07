@@ -12,6 +12,7 @@ export const BRAND = {
 export const PUBLIC_NAV = [
   { href: "/", label: "Accueil" },
   { href: "/reservation", label: "Réserver" },
+  { href: "/#reels", label: "Reels" },
   { href: "/avis", label: "Avis" },
   { href: "/connexion", label: "Connexion" },
 ] as const;

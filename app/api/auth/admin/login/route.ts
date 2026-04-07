@@ -1,6 +1,6 @@
 import { cookies } from "next/headers";
 import { NextResponse } from "next/server";
-import { ADMIN_COOKIE } from "@/lib/auth";
+import { ADMIN_COOKIE, createSignedSessionToken } from "@/lib/auth";
 import { loginAdmin } from "@/lib/repository";
 
 export async function POST(request: Request) {
@@ -20,15 +20,24 @@ export async function POST(request: Request) {
       username: body.username,
       password: body.password,
     });
+    const expiresAt = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString();
 
     const cookieStore = await cookies();
-    cookieStore.set(ADMIN_COOKIE, result.session.token, {
+    cookieStore.set(
+      ADMIN_COOKIE,
+      createSignedSessionToken({
+        kind: "admin",
+        subjectId: result.admin.id,
+        expiresAt,
+      }),
+      {
       httpOnly: true,
       sameSite: "lax",
       secure: process.env.NODE_ENV === "production",
       path: "/",
-      expires: new Date(result.session.expiresAt),
-    });
+      expires: new Date(expiresAt),
+    },
+    );
 
     return NextResponse.json({
       adminId: result.admin.id,

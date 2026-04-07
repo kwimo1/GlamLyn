@@ -402,23 +402,15 @@ export async function verifyOtp(phone: string, code: string, name?: string) {
 }
 
 export async function loginAdmin(input: { username: string; password: string }) {
-  return updateDb(async (db) => {
-    const admin = db.adminUsers.find(
-      (user) => user.username === input.username && user.active,
-    );
-    if (!admin || !verifyPassword(input.password, admin.passwordHash)) {
-      throw new Error("Identifiant admin ou mot de passe incorrect.");
-    }
+  const db = await readDb();
+  const admin = db.adminUsers.find(
+    (user) => user.username === input.username && user.active,
+  );
+  if (!admin || !verifyPassword(input.password, admin.passwordHash)) {
+    throw new Error("Identifiant admin ou mot de passe incorrect.");
+  }
 
-    admin.lastLoginAt = new Date().toISOString();
-    const session = createSessionRecord(admin.id);
-    db.adminSessions.unshift(session);
-
-    return {
-      admin,
-      session,
-    };
-  });
+  return { admin };
 }
 
 export async function clearSession(token: string, kind: "admin" | "customer") {

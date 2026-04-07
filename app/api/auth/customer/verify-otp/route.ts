@@ -1,6 +1,6 @@
 import { cookies } from "next/headers";
 import { NextResponse } from "next/server";
-import { CUSTOMER_COOKIE } from "@/lib/auth";
+import { CUSTOMER_COOKIE, createSignedSessionToken } from "@/lib/auth";
 import { verifyOtp } from "@/lib/repository";
 
 export async function POST(request: Request) {
@@ -19,14 +19,25 @@ export async function POST(request: Request) {
     }
 
     const result = await verifyOtp(body.phone, body.code, body.name);
+    const expiresAt = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString();
     const cookieStore = await cookies();
-    cookieStore.set(CUSTOMER_COOKIE, result.session.token, {
+    cookieStore.set(
+      CUSTOMER_COOKIE,
+      createSignedSessionToken({
+        kind: "customer",
+        subjectId: result.customer.id,
+        phone: result.customer.phone,
+        name: result.customer.name,
+        expiresAt,
+      }),
+      {
       httpOnly: true,
       sameSite: "lax",
       secure: process.env.NODE_ENV === "production",
       path: "/",
-      expires: new Date(result.session.expiresAt),
-    });
+      expires: new Date(expiresAt),
+    },
+    );
 
     return NextResponse.json({
       customerId: result.customer.id,
