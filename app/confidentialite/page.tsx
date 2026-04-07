@@ -9,10 +9,13 @@ export default function ConfidentialitePage() {
             Confidentialité
           </p>
           <h1 className="font-[family-name:var(--font-display)] text-5xl leading-none text-[var(--ink)]">
-            Données de réservation et SMS
+            Données de réservation et notifications e-mail
           </h1>
           <p className="text-sm leading-8 text-[var(--muted-ink)]">
-            Cette page documente les données traitées pour la réservation, l’authentification par téléphone, les points fidélité, les avis et les notifications SMS. Elle doit être enrichie avant mise en production avec la politique réelle du salon et les mentions du fournisseur SMS.
+            Cette page documente les données traitées pour la réservation, l’authentification par
+            lien magique reçu par e-mail, les points fidélité, les avis et les notifications
+            transactionnelles. Elle doit être enrichie avant mise en production avec la politique
+            réelle du salon, les mentions Supabase Auth et le fournisseur d’e-mails transactionnels.
           </p>
         </div>
       </section>

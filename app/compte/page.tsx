@@ -22,7 +22,7 @@ export default async function ComptePage() {
           <div className="max-w-3xl space-y-6 rounded-[34px] border border-[var(--line)] bg-[rgba(255,252,248,0.88)] p-6">
             <SectionHeading
               eyebrow="Espace client"
-              title="Connectez-vous avec votre téléphone."
+              title="Connectez-vous avec votre e-mail."
               description="Le compte est facultatif, mais il permet de gérer ses rendez-vous, suivre ses points et déposer un avis après une prestation terminée."
             />
             <Link
@@ -58,13 +58,16 @@ export default async function ComptePage() {
               {dashboard.customer.name}
             </h1>
             <p className="mt-4 text-sm leading-7 text-[rgba(255,244,220,0.78)]">
-              Téléphone principal: {dashboard.customer.phone}
+              E-mail principal: {dashboard.customer.email ?? "à renseigner"}
+              <br />
+              Téléphone: {dashboard.customer.phone ?? "à renseigner lors d’une réservation"}
               <br />
               Points disponibles: <strong>{dashboard.customer.points}</strong>
             </p>
             <p className="mt-6 rounded-[24px] border border-white/10 bg-white/5 px-4 py-4 text-sm leading-7 text-[rgba(255,244,220,0.8)]">
-              Créez votre compte et gagnez 1 point maintenant, puis 1 point à chaque réservation.
-              Vos points sont suivis ici et peuvent être convertis manuellement par l’administration.
+              Créez votre compte et gagnez 1 point maintenant, puis 1 point à chaque réservation
+              terminée. Vos points sont suivis ici et peuvent être convertis manuellement par
+              l’administration.
             </p>
             <div className="mt-6">
               <LogoutButton redirectTo="/" label="Me déconnecter" />
@@ -94,7 +97,9 @@ export default async function ComptePage() {
                               {booking.services.map((service) => service.name).join(" · ")}
                             </p>
                             <p className="mt-2 text-sm leading-7 text-[var(--muted-ink)]">
-                              {formatDateTimeCompact(booking.startsAt)} · {formatDuration(booking.totalDurationMinutes)} · {formatCurrencyDzd(booking.totalPriceDzd)}
+                              {formatDateTimeCompact(booking.startsAt)} ·{" "}
+                              {formatDuration(booking.totalDurationMinutes)} ·{" "}
+                              {formatCurrencyDzd(booking.totalPriceDzd)}
                             </p>
                           </div>
 
@@ -133,7 +138,8 @@ export default async function ComptePage() {
                             </div>
                           ) : (
                             <p className="max-w-xs text-sm leading-7 text-[var(--muted-ink)]">
-                              Le délai autonome est dépassé. Contactez le salon pour modifier ce rendez-vous.
+                              Le délai autonome est dépassé. Contactez le salon pour modifier ce
+                              rendez-vous.
                             </p>
                           )}
                         </div>

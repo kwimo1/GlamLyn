@@ -28,7 +28,7 @@ export default async function AdminPage() {
           <SectionHeading
             eyebrow="Administration"
             title="Connexion admin requise."
-            description="Connectez-vous avec l’identifiant admin spécifique depuis la page de connexion pour ouvrir le dashboard owner."
+            description="Connectez-vous avec l’identifiant admin spécifique depuis la page de connexion pour ouvrir le tableau de bord."
           />
           <Link
             href="/connexion"
@@ -47,13 +47,14 @@ export default async function AdminPage() {
         <section className="grid gap-6 lg:grid-cols-[0.86fr_1.14fr]">
           <aside className="rounded-[34px] border border-[var(--line)] bg-[rgba(36,26,19,0.94)] p-6 text-[var(--surface)]">
             <p className="text-xs uppercase tracking-[0.34em] text-[rgba(255,244,220,0.72)]">
-              Dashboard owner
+              Tableau de bord
             </p>
             <h1 className="mt-4 font-[family-name:var(--font-display)] text-5xl leading-none">
               {dashboard.admin.displayName}
             </h1>
             <p className="mt-4 text-sm leading-7 text-[rgba(255,244,220,0.78)]">
-              Pilotage du site, du planning, des clientes, des visuels, des reels et des avis depuis une seule interface responsive.
+              Pilotage du site, du planning, des clientes, des visuels, des reels et des avis depuis
+              une seule interface responsive.
             </p>
             <div className="mt-6">
               <LogoutButton redirectTo="/connexion" label="Déconnexion admin" />
@@ -62,10 +63,6 @@ export default async function AdminPage() {
 
           <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
             {[
-              {
-                label: "CA estimé",
-                value: formatCurrencyDzd(dashboard.metrics.estimatedRevenueDzd),
-              },
               {
                 label: "Réservations semaine",
                 value: dashboard.metrics.bookingsThisWeek.toString(),
@@ -85,6 +82,10 @@ export default async function AdminPage() {
               {
                 label: "Avis en attente",
                 value: dashboard.metrics.pendingReviews.toString(),
+              },
+              {
+                label: "Top services",
+                value: dashboard.metrics.topServices.length.toString(),
               },
             ].map((metric) => (
               <div
@@ -106,73 +107,83 @@ export default async function AdminPage() {
           <SectionHeading
             eyebrow="Planning"
             title="Réservations à venir"
-            description="Reprogrammez, annulez ou marquez une prestation comme terminée. Les SMS correspondants partent automatiquement."
+            description="Reprogrammez, annulez ou marquez une prestation comme terminée. Les e-mails correspondants partent automatiquement quand une adresse est liée au compte."
           />
           <div className="mt-8 space-y-4">
-            {dashboard.upcomingBookings.map((booking) => (
-              <article
-                key={booking.id}
-                className="rounded-[28px] border border-[var(--line)] bg-white/70 p-4"
-              >
-                <div className="grid gap-4 lg:grid-cols-[1fr_auto]">
-                  <div>
-                    <p className="text-sm font-semibold text-[var(--ink)]">
-                      {booking.customer?.name ?? "Cliente"} · {booking.customer?.phone ?? "n/a"}
-                    </p>
-                    <p className="mt-2 text-sm leading-7 text-[var(--muted-ink)]">
-                      {booking.services.map((service) => service.name).join(" · ")}
-                    </p>
-                    <p className="mt-2 text-sm leading-7 text-[var(--muted-ink)]">
-                      {formatDateTimeCompact(booking.startsAt)} · {formatDuration(booking.totalDurationMinutes)} · {formatCurrencyDzd(booking.totalPriceDzd)}
-                    </p>
-                  </div>
-                  <div className="flex flex-col gap-3 lg:min-w-[260px]">
-                    <div className="flex gap-3">
-                      <form action={completeBookingAction} className="flex-1">
+            {dashboard.upcomingBookings.map((booking) => {
+              const defaultDate = booking.startsAt.slice(0, 10);
+              const defaultTime = booking.startsAt.slice(11, 16);
+
+              return (
+                <article
+                  key={booking.id}
+                  className="rounded-[28px] border border-[var(--line)] bg-white/70 p-4"
+                >
+                  <div className="grid gap-4 lg:grid-cols-[1fr_auto]">
+                    <div>
+                      <p className="text-sm font-semibold text-[var(--ink)]">
+                        {booking.customer?.name ?? "Cliente"} · {booking.customer?.phone ?? "n/a"}
+                      </p>
+                      <p className="mt-1 text-sm text-[var(--muted-ink)]">
+                        {booking.customer?.email ?? "Pas d’e-mail lié"}
+                      </p>
+                      <p className="mt-2 text-sm leading-7 text-[var(--muted-ink)]">
+                        {booking.services.map((service) => service.name).join(" · ")}
+                      </p>
+                      <p className="mt-2 text-sm leading-7 text-[var(--muted-ink)]">
+                        {formatDateTimeCompact(booking.startsAt)} ·{" "}
+                        {formatDuration(booking.totalDurationMinutes)} ·{" "}
+                        {formatCurrencyDzd(booking.totalPriceDzd)}
+                      </p>
+                    </div>
+                    <div className="flex flex-col gap-3 lg:min-w-[280px]">
+                      <div className="flex gap-3">
+                        <form action={completeBookingAction} className="flex-1">
+                          <input type="hidden" name="bookingId" value={booking.id} />
+                          <button
+                            type="submit"
+                            className="inline-flex min-h-11 w-full items-center justify-center rounded-full bg-[var(--ink)] px-4 text-sm font-semibold text-[var(--surface)]"
+                          >
+                            Terminer
+                          </button>
+                        </form>
+                        <form action={cancelBookingAdminAction} className="flex-1">
+                          <input type="hidden" name="bookingId" value={booking.id} />
+                          <button
+                            type="submit"
+                            className="inline-flex min-h-11 w-full items-center justify-center rounded-full border border-[var(--line)] bg-white px-4 text-sm font-semibold text-[var(--ink)]"
+                          >
+                            Annuler
+                          </button>
+                        </form>
+                      </div>
+
+                      <form action={rescheduleBookingAdminAction} className="grid grid-cols-[1fr_1fr_auto] gap-2">
                         <input type="hidden" name="bookingId" value={booking.id} />
+                        <input
+                          type="date"
+                          name="date"
+                          defaultValue={defaultDate}
+                          className="min-h-11 rounded-full border border-[var(--line)] bg-white px-4 text-sm text-[var(--ink)]"
+                        />
+                        <input
+                          type="time"
+                          name="time"
+                          defaultValue={defaultTime}
+                          className="min-h-11 rounded-full border border-[var(--line)] bg-white px-4 text-sm text-[var(--ink)]"
+                        />
                         <button
                           type="submit"
-                          className="inline-flex min-h-11 w-full items-center justify-center rounded-full bg-[var(--ink)] px-4 text-sm font-semibold text-[var(--surface)]"
+                          className="inline-flex min-h-11 items-center justify-center rounded-full bg-[var(--gold)] px-4 text-sm font-semibold text-white"
                         >
-                          Terminer
-                        </button>
-                      </form>
-                      <form action={cancelBookingAdminAction} className="flex-1">
-                        <input type="hidden" name="bookingId" value={booking.id} />
-                        <button
-                          type="submit"
-                          className="inline-flex min-h-11 w-full items-center justify-center rounded-full border border-[var(--line)] bg-white px-4 text-sm font-semibold text-[var(--ink)]"
-                        >
-                          Annuler
+                          Reporter
                         </button>
                       </form>
                     </div>
-
-                    <form action={rescheduleBookingAdminAction} className="grid grid-cols-[1fr_1fr_auto] gap-2">
-                      <input type="hidden" name="bookingId" value={booking.id} />
-                      <input
-                        type="date"
-                        name="date"
-                        defaultValue="2026-04-12"
-                        className="min-h-11 rounded-full border border-[var(--line)] bg-white px-4 text-sm text-[var(--ink)]"
-                      />
-                      <input
-                        type="time"
-                        name="time"
-                        defaultValue="11:00"
-                        className="min-h-11 rounded-full border border-[var(--line)] bg-white px-4 text-sm text-[var(--ink)]"
-                      />
-                      <button
-                        type="submit"
-                        className="inline-flex min-h-11 items-center justify-center rounded-full bg-[var(--gold)] px-4 text-sm font-semibold text-white"
-                      >
-                        Reporter
-                      </button>
-                    </form>
                   </div>
-                </div>
-              </article>
-            ))}
+                </article>
+              );
+            })}
           </div>
         </section>
 
@@ -248,31 +259,6 @@ export default async function AdminPage() {
                 </form>
               ))}
             </div>
-
-            <form
-              action={upsertServiceAction}
-              className="mt-6 rounded-[28px] border border-dashed border-[var(--line)] bg-white/40 p-4"
-            >
-              <p className="text-sm font-semibold text-[var(--ink)]">Ajouter un service</p>
-              <div className="mt-4 grid gap-3 md:grid-cols-2">
-                <input name="name" placeholder="Nom" className="min-h-11 rounded-full border border-[var(--line)] bg-white px-4 text-sm" />
-                <select name="categoryId" className="min-h-11 rounded-full border border-[var(--line)] bg-white px-4 text-sm">
-                  <option value="cheveux">Cheveux</option>
-                  <option value="beaute_bien_etre">Beauté et bien-être</option>
-                </select>
-                <input name="priceDzd" placeholder="Prix DZD" className="min-h-11 rounded-full border border-[var(--line)] bg-white px-4 text-sm" />
-                <input name="durationMinutes" placeholder="Durée (min)" className="min-h-11 rounded-full border border-[var(--line)] bg-white px-4 text-sm" />
-              </div>
-              <textarea name="description" placeholder="Description" className="mt-3 min-h-20 w-full rounded-[24px] border border-[var(--line)] bg-white px-4 py-3 text-sm" />
-              <input type="hidden" name="order" value={dashboard.services.length + 1} />
-              <label className="mt-3 flex items-center gap-2 text-sm text-[var(--muted-ink)]">
-                <input type="checkbox" name="active" defaultChecked />
-                Activer immédiatement
-              </label>
-              <button type="submit" className="mt-4 inline-flex min-h-11 items-center justify-center rounded-full bg-[var(--gold)] px-4 text-sm font-semibold text-white">
-                Ajouter
-              </button>
-            </form>
           </div>
 
           <div className="space-y-6">
@@ -317,6 +303,7 @@ export default async function AdminPage() {
                       {asset.kind === "upload" ? (
                         <form action={deleteMediaAction}>
                           <input type="hidden" name="mediaId" value={asset.id} />
+                          <input type="hidden" name="storagePath" value={asset.storagePath ?? ""} />
                           <button type="submit" className="inline-flex min-h-10 items-center justify-center rounded-full border border-[var(--line)] bg-white px-3 text-xs font-semibold text-[var(--ink)]">
                             Supprimer
                           </button>
@@ -341,7 +328,7 @@ export default async function AdminPage() {
                     <input type="hidden" name="id" value={reel.id} />
                     <input name="title" defaultValue={reel.title} className="min-h-11 rounded-full border border-[var(--line)] bg-white px-4 text-sm" />
                     <input name="reelUrl" defaultValue={reel.reelUrl} className="min-h-11 rounded-full border border-[var(--line)] bg-white px-4 text-sm" />
-                    <input name="externalCoverUrl" defaultValue={reel.externalCoverUrl} className="min-h-11 rounded-full border border-[var(--line)] bg-white px-4 text-sm" />
+                    <input name="externalCoverUrl" defaultValue={reel.externalCoverUrl ?? ""} className="min-h-11 rounded-full border border-[var(--line)] bg-white px-4 text-sm" />
                     <textarea name="caption" defaultValue={reel.caption} className="min-h-20 rounded-[24px] border border-[var(--line)] bg-white px-4 py-3 text-sm" />
                     <div className="grid gap-3 md:grid-cols-[120px_auto_auto]">
                       <input name="order" defaultValue={reel.order} className="min-h-11 rounded-full border border-[var(--line)] bg-white px-4 text-sm" />
@@ -356,26 +343,6 @@ export default async function AdminPage() {
                   </form>
                 ))}
               </div>
-
-              <form action={upsertReelAction} className="mt-6 rounded-[28px] border border-dashed border-[var(--line)] bg-white/40 p-4">
-                <p className="text-sm font-semibold text-[var(--ink)]">Ajouter un reel</p>
-                <div className="mt-4 grid gap-3">
-                  <input name="title" placeholder="Titre" className="min-h-11 rounded-full border border-[var(--line)] bg-white px-4 text-sm" />
-                  <input name="reelUrl" placeholder="https://www.instagram.com/reel/..." className="min-h-11 rounded-full border border-[var(--line)] bg-white px-4 text-sm" />
-                  <input name="externalCoverUrl" placeholder="Couverture (url ou /placeholders/...)" className="min-h-11 rounded-full border border-[var(--line)] bg-white px-4 text-sm" />
-                  <textarea name="caption" placeholder="Légende courte" className="min-h-20 rounded-[24px] border border-[var(--line)] bg-white px-4 py-3 text-sm" />
-                  <div className="grid gap-3 md:grid-cols-[120px_auto_auto]">
-                    <input name="order" defaultValue={dashboard.instagramReels.length + 1} className="min-h-11 rounded-full border border-[var(--line)] bg-white px-4 text-sm" />
-                    <label className="flex items-center gap-2 rounded-full border border-[var(--line)] bg-white px-4 text-sm">
-                      <input type="checkbox" name="published" defaultChecked />
-                      Publier
-                    </label>
-                    <button type="submit" className="inline-flex min-h-11 items-center justify-center rounded-full bg-[var(--gold)] px-4 text-sm font-semibold text-white">
-                      Ajouter
-                    </button>
-                  </div>
-                </div>
-              </form>
             </section>
           </div>
         </section>
@@ -383,35 +350,39 @@ export default async function AdminPage() {
         <section className="grid gap-6 xl:grid-cols-[0.96fr_1.04fr]">
           <section className="rounded-[34px] border border-[var(--line)] bg-[rgba(255,252,248,0.88)] p-5 sm:p-6">
             <SectionHeading
-              eyebrow="Avis"
-              title="Modération"
-              description="Les avis venant du site restent en attente jusqu’à validation explicite."
+              eyebrow="Clientes"
+              title="Comptes et historique"
+              description="Retrouvez les inscrites, leur statut de compte, leurs points et leur dernier rendez-vous."
             />
-            <div className="mt-8 space-y-4">
-              {dashboard.reviews.map((review) => (
-                <article key={review.id} className="rounded-[24px] border border-[var(--line)] bg-white/70 p-4">
-                  <p className="text-sm font-semibold text-[var(--ink)]">
-                    {review.customer?.name ?? "Cliente"}
-                  </p>
-                  <p className="mt-2 text-sm leading-7 text-[var(--muted-ink)]">{review.text}</p>
-                  <div className="mt-4 flex flex-wrap gap-3">
-                    <form action={moderateReviewAction}>
-                      <input type="hidden" name="reviewId" value={review.id} />
-                      <input type="hidden" name="status" value="published" />
-                      <button type="submit" className="inline-flex min-h-11 items-center justify-center rounded-full bg-[var(--ink)] px-4 text-sm font-semibold text-[var(--surface)]">
-                        Publier
-                      </button>
-                    </form>
-                    <form action={moderateReviewAction}>
-                      <input type="hidden" name="reviewId" value={review.id} />
-                      <input type="hidden" name="status" value="rejected" />
-                      <button type="submit" className="inline-flex min-h-11 items-center justify-center rounded-full border border-[var(--line)] bg-white px-4 text-sm font-semibold text-[var(--ink)]">
-                        Rejeter
-                      </button>
-                    </form>
-                    <span className="inline-flex min-h-11 items-center rounded-full bg-[rgba(181,138,71,0.12)] px-4 text-xs uppercase tracking-[0.24em] text-[var(--gold-deep)]">
-                      {review.status}
+            <div className="mt-8 space-y-3">
+              {dashboard.customers.map((customer) => (
+                <article key={customer.id} className="rounded-[24px] border border-[var(--line)] bg-white/70 p-4">
+                  <div className="flex flex-wrap items-start justify-between gap-3">
+                    <div>
+                      <p className="text-sm font-semibold text-[var(--ink)]">{customer.name}</p>
+                      <p className="mt-1 text-sm text-[var(--muted-ink)]">
+                        {customer.email ?? "Pas d’e-mail"} · {customer.phone ?? "Pas de téléphone"}
+                      </p>
+                    </div>
+                    <span className="inline-flex min-h-10 items-center rounded-full bg-[rgba(181,138,71,0.12)] px-4 text-xs uppercase tracking-[0.24em] text-[var(--gold-deep)]">
+                      {customer.hasAccount ? "Compte actif" : "Invitée"}
                     </span>
+                  </div>
+                  <div className="mt-4 grid gap-3 sm:grid-cols-3">
+                    <div>
+                      <p className="text-xs uppercase tracking-[0.24em] text-[var(--muted-ink)]">Points</p>
+                      <p className="mt-1 text-sm font-semibold text-[var(--ink)]">{customer.points}</p>
+                    </div>
+                    <div>
+                      <p className="text-xs uppercase tracking-[0.24em] text-[var(--muted-ink)]">Dernier rendez-vous</p>
+                      <p className="mt-1 text-sm font-semibold text-[var(--ink)]">
+                        {customer.lastBookingAt ? formatDateTimeCompact(customer.lastBookingAt) : "Aucun"}
+                      </p>
+                    </div>
+                    <div>
+                      <p className="text-xs uppercase tracking-[0.24em] text-[var(--muted-ink)]">Total réservations</p>
+                      <p className="mt-1 text-sm font-semibold text-[var(--ink)]">{customer.totalBookings}</p>
+                    </div>
                   </div>
                 </article>
               ))}
@@ -419,6 +390,46 @@ export default async function AdminPage() {
           </section>
 
           <section className="space-y-6">
+            <div className="rounded-[34px] border border-[var(--line)] bg-[rgba(255,252,248,0.88)] p-5 sm:p-6">
+              <SectionHeading
+                eyebrow="Avis"
+                title="Modération"
+                description="Les avis venant du site restent en attente jusqu’à validation explicite."
+              />
+              <div className="mt-8 space-y-4">
+                {dashboard.reviews.map((review) => (
+                  <article key={review.id} className="rounded-[24px] border border-[var(--line)] bg-white/70 p-4">
+                    <p className="text-sm font-semibold text-[var(--ink)]">
+                      {review.customer?.name ?? "Cliente"}
+                    </p>
+                    <p className="mt-1 text-sm text-[var(--muted-ink)]">
+                      {review.customer?.email ?? "Pas d’e-mail"}
+                    </p>
+                    <p className="mt-2 text-sm leading-7 text-[var(--muted-ink)]">{review.text}</p>
+                    <div className="mt-4 flex flex-wrap gap-3">
+                      <form action={moderateReviewAction}>
+                        <input type="hidden" name="reviewId" value={review.id} />
+                        <input type="hidden" name="status" value="published" />
+                        <button type="submit" className="inline-flex min-h-11 items-center justify-center rounded-full bg-[var(--ink)] px-4 text-sm font-semibold text-[var(--surface)]">
+                          Publier
+                        </button>
+                      </form>
+                      <form action={moderateReviewAction}>
+                        <input type="hidden" name="reviewId" value={review.id} />
+                        <input type="hidden" name="status" value="rejected" />
+                        <button type="submit" className="inline-flex min-h-11 items-center justify-center rounded-full border border-[var(--line)] bg-white px-4 text-sm font-semibold text-[var(--ink)]">
+                          Rejeter
+                        </button>
+                      </form>
+                      <span className="inline-flex min-h-11 items-center rounded-full bg-[rgba(181,138,71,0.12)] px-4 text-xs uppercase tracking-[0.24em] text-[var(--gold-deep)]">
+                        {review.status}
+                      </span>
+                    </div>
+                  </article>
+                ))}
+              </div>
+            </div>
+
             <div className="rounded-[34px] border border-[var(--line)] bg-[rgba(255,252,248,0.88)] p-5 sm:p-6">
               <SectionHeading
                 eyebrow="Réglages"
@@ -447,23 +458,23 @@ export default async function AdminPage() {
               <SectionHeading
                 eyebrow="Exports"
                 title="CSV réservations et clientes"
-                description="Le owner peut extraire les données clés pour un suivi externe."
+                description="Le salon peut extraire les données clés pour un suivi externe."
               />
               <div className="mt-8 flex flex-wrap gap-3">
                 <a href="/api/exports/bookings" className="inline-flex min-h-11 items-center justify-center rounded-full bg-[var(--gold)] px-4 text-sm font-semibold text-white">
-                  Export bookings
+                  Export réservations
                 </a>
                 <a href="/api/exports/clients" className="inline-flex min-h-11 items-center justify-center rounded-full border border-[var(--line)] bg-white px-4 text-sm font-semibold text-[var(--ink)]">
-                  Export clients
+                  Export clientes
                 </a>
               </div>
             </div>
 
             <div className="rounded-[34px] border border-[var(--line)] bg-[rgba(255,252,248,0.88)] p-5 sm:p-6">
               <SectionHeading
-                eyebrow="Derniers SMS"
+                eyebrow="Derniers e-mails"
                 title="Journal de notifications"
-                description="Les confirmations, rappels, annulations et demandes d’avis sont archivés ici."
+                description="Les confirmations, rappels, annulations, reports et demandes d’avis sont archivés ici."
               />
               <div className="mt-8 space-y-3">
                 {dashboard.notificationLogs.map((log) => (
@@ -476,6 +487,7 @@ export default async function AdminPage() {
                       <span>{log.provider}</span>
                     </div>
                     <p className="mt-2 text-sm font-semibold text-[var(--ink)]">{log.recipient}</p>
+                    <p className="mt-1 text-sm text-[var(--muted-ink)]">{log.subject}</p>
                     <p className="mt-2 text-sm leading-7 text-[var(--muted-ink)]">{log.message}</p>
                   </div>
                 ))}

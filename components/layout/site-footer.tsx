@@ -9,7 +9,8 @@ export function SiteFooter() {
             Glam Lyn
           </p>
           <p className="max-w-md text-sm leading-6 text-[var(--muted-ink)]">
-            Réservation fluide, galerie éditoriale et suivi SMS pour un centre de beauté local pensé d’abord pour le téléphone.
+            Réservation fluide, galerie éditoriale et suivi e-mail pour un centre de beauté
+            local pensé d’abord pour le téléphone.
           </p>
         </div>
 
@@ -21,7 +22,7 @@ export function SiteFooter() {
             Confidentialité
           </Link>
           <Link href="/connexion" className="transition hover:text-[var(--ink)]">
-            Connexion client / admin
+            Connexion cliente / admin
           </Link>
         </div>
       </div>

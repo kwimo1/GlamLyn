@@ -1,8 +1,9 @@
 "use client";
 
-import { CalendarDays, Clock3, LoaderCircle, Sparkles, UserRound } from "lucide-react";
+import { CalendarDays, Clock3, LoaderCircle, Mail, Sparkles, UserRound } from "lucide-react";
 import { startTransition, useDeferredValue, useEffect, useEffectEvent, useState } from "react";
 import { formatCurrencyDzd, formatDuration } from "@/lib/format";
+import { getSupabaseBrowserClient } from "@/lib/supabase/browser";
 import type { AvailabilitySlot, BusinessSettings, ServiceCategory, ServiceItem } from "@/lib/types";
 
 interface BookingWizardProps {
@@ -22,7 +23,9 @@ interface BookingSuccessState {
   totalPriceDzd: number;
   totalDurationMinutes: number;
   summary: string;
-  smsStatus: string;
+  notificationStatus: string;
+  accountLinkStatus: string;
+  accountLinkMessage?: string | null;
 }
 
 export function BookingWizard({
@@ -102,6 +105,32 @@ export function BookingWizard({
     void fetchAvailability();
   }, [deferredDate, deferredSelection]);
 
+  useEffect(() => {
+    const supabase = getSupabaseBrowserClient();
+    if (!supabase) {
+      return;
+    }
+
+    const channel = supabase
+      .channel("glam-lyn-booking-events")
+      .on(
+        "postgres_changes",
+        {
+          event: "INSERT",
+          schema: "public",
+          table: "booking_events",
+        },
+        () => {
+          void fetchAvailability();
+        },
+      )
+      .subscribe();
+
+    return () => {
+      void supabase.removeChannel(channel);
+    };
+  }, []);
+
   function toggleService(serviceId: string) {
     startTransition(() => {
       setSelectedSlot(null);
@@ -140,18 +169,18 @@ export function BookingWizard({
       return;
     }
 
+    if (contact.createAccount && !contact.email) {
+      setError("L’e-mail est requis pour créer un compte.");
+      setCurrentStep(3);
+      return;
+    }
+
     setSubmitting(true);
     setError(null);
 
     try {
-      const start = new Date(selectedSlot.startsAt);
-      const date = start.toLocaleDateString("en-CA", { timeZone: settings.timezone });
-      const time = start.toLocaleTimeString("fr-FR", {
-        timeZone: settings.timezone,
-        hour: "2-digit",
-        minute: "2-digit",
-        hour12: false,
-      });
+      const date = selectedSlot.startsAt.slice(0, 10);
+      const time = selectedSlot.startsAt.slice(11, 16);
 
       const response = await fetch("/api/bookings", {
         method: "POST",
@@ -184,6 +213,34 @@ export function BookingWizard({
       setSubmitting(false);
     }
   }
+
+  const legacyNotificationText =
+    success?.notificationStatus === "sent"
+      ? "Une confirmation a été envoyée par e-mail."
+      : contact.createAccount
+        ? "Votre réservation est enregistrée et votre lien de connexion a été envoyé par e-mail."
+        : "Votre réservation est enregistrée. Aucun e-mail automatique n’est lié à ce rendez-vous invité.";
+
+  const notificationText = success
+    ? [
+        success.notificationStatus === "sent"
+          ? "Une confirmation a Ã©tÃ© envoyÃ©e par e-mail."
+          : success.notificationStatus === "failed"
+            ? "La rÃ©servation est enregistrÃ©e, mais l'e-mail de confirmation n'a pas pu Ãªtre envoyÃ©."
+            : contact.createAccount
+              ? "La rÃ©servation est enregistrÃ©e."
+              : "Votre rÃ©servation est enregistrÃ©e. Aucun e-mail automatique nâ€™est liÃ© Ã  ce rendez-vous invitÃ©.",
+        contact.createAccount
+          ? success.accountLinkStatus === "sent"
+            ? "Votre lien de connexion a Ã©tÃ© envoyÃ© par e-mail."
+            : success.accountLinkStatus === "failed"
+              ? "Le lien de connexion n'a pas pu Ãªtre envoyÃ© pour le moment. RÃ©essayez depuis la page de connexion."
+              : ""
+          : "",
+      ]
+        .filter(Boolean)
+        .join(" ")
+    : legacyNotificationText;
 
   return (
     <div className="grid gap-6 lg:grid-cols-[1.2fr_0.8fr]">
@@ -269,7 +326,7 @@ export function BookingWizard({
             <div>
               <p className="text-sm font-semibold text-[var(--ink)]">Choisissez un créneau</p>
               <p className="text-sm text-[var(--muted-ink)]">
-                Disponibilités calculées à partir du planning réel du salon.
+                Disponibilités recalculées dès qu’une réservation est créée, annulée ou reportée.
               </p>
             </div>
           </div>
@@ -335,7 +392,7 @@ export function BookingWizard({
             <div>
               <p className="text-sm font-semibold text-[var(--ink)]">Vos coordonnées</p>
               <p className="text-sm text-[var(--muted-ink)]">
-                Nom et téléphone sont requis pour les confirmations SMS.
+                Nom et téléphone sont requis. L’e-mail devient nécessaire si vous créez un compte.
               </p>
             </div>
           </div>
@@ -362,8 +419,9 @@ export function BookingWizard({
             </label>
 
             <label className="space-y-2 text-sm text-[var(--ink)] sm:col-span-2">
-              <span>E-mail (facultatif)</span>
+              <span>E-mail</span>
               <input
+                type="email"
                 value={contact.email}
                 onChange={(event) => handleContactChange("email", event.target.value)}
                 className="min-h-12 w-full rounded-2xl border border-[var(--line)] bg-white/80 px-4 outline-none transition focus:border-[var(--gold)]"
@@ -395,7 +453,7 @@ export function BookingWizard({
               <strong className="text-[var(--ink)]">
                 Créez votre compte et gagnez 1 point maintenant
               </strong>
-              , puis 1 point à chaque réservation. Vous pourrez ensuite vous connecter par code SMS.
+              , puis 1 point à chaque réservation. Un lien magique vous sera envoyé par e-mail.
             </span>
           </label>
 
@@ -426,7 +484,8 @@ export function BookingWizard({
               </h2>
               <p className="text-sm leading-7 text-[var(--muted-ink)]">
                 {success.customerName}, votre réservation est confirmée pour {success.summary}.
-                Un SMS a été préparé avec le statut <strong>{success.smsStatus}</strong>.
+                <br />
+                {notificationText}
               </p>
             </div>
           </article>
@@ -460,12 +519,22 @@ export function BookingWizard({
                 {selectedSlot ? `${selectedSlot.dateLabel} · ${selectedSlot.timeLabel}` : "À choisir"}
               </span>
             </div>
+            <div className="flex items-start justify-between gap-3 border-t border-white/10 pt-4 text-sm">
+              <span className="flex items-center gap-2 text-[rgba(255,244,220,0.74)]">
+                <Mail className="h-4 w-4" />
+                Notification
+              </span>
+              <span className="text-right">
+                {contact.createAccount ? "E-mail automatique" : "Aucune en invité"}
+              </span>
+            </div>
           </div>
 
           <div className="mt-6 border-t border-white/10 pt-5">
             <p className="text-sm leading-7 text-[rgba(255,244,220,0.8)]">
               Réservation possible jusqu’à {settings.bookingLeadHours}h avant le rendez-vous.
-              Modification autonome jusqu’à {settings.selfServiceChangeHours}h avant pour les clientes avec compte.
+              Modification autonome jusqu’à {settings.selfServiceChangeHours}h avant pour les
+              clientes avec compte.
             </p>
           </div>
         </div>

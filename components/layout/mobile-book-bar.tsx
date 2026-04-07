@@ -9,14 +9,14 @@ export function MobileBookBar() {
             Glam Lyn
           </p>
           <p className="truncate text-sm text-[var(--ink)]">
-            Réservation rapide et confirmation SMS
+            Réservation rapide et confirmation par e-mail
           </p>
         </div>
         <Link
           href="/reservation"
           className="inline-flex min-h-12 shrink-0 items-center justify-center rounded-full bg-[linear-gradient(135deg,var(--gold),#d3b179)] px-5 text-sm font-semibold text-white shadow-[0_12px_24px_rgba(137,97,42,0.24)]"
         >
-          Book now
+          Réserver
         </Link>
       </div>
     </div>

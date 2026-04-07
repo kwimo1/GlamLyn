@@ -11,7 +11,7 @@ export default function ConnexionPage() {
         <SectionHeading
           eyebrow="Connexion"
           title="Cliente et administration utilisent des parcours distincts."
-          description="Le compte client fonctionne par code SMS. L’admin accède au dashboard avec son identifiant spécifique et son mot de passe."
+          description="Le compte client fonctionne par lien magique reçu par e-mail. L’admin accède au tableau de bord avec son identifiant spécifique et son mot de passe."
         />
 
         <div className="mt-10">

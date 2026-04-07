@@ -1,17 +1,41 @@
 import { cookies } from "next/headers";
 import { createHash, createHmac, timingSafeEqual } from "node:crypto";
-import type { AdminUser, CustomerProfile, DatabaseShape, SessionRecord } from "@/lib/types";
+import type { AdminUser, CustomerProfile } from "@/lib/types";
+import { getSupabaseAdmin } from "@/lib/supabase/admin";
+import { getSupabaseServerClient } from "@/lib/supabase/server";
 
 export const ADMIN_COOKIE = "glamlyn_admin_session";
-export const CUSTOMER_COOKIE = "glamlyn_customer_session";
 const SESSION_SECRET = process.env.SESSION_SECRET ?? "glam-lyn-demo-secret";
 
 interface SignedSessionPayload {
-  kind: "admin" | "customer";
-  subjectId?: string;
-  phone?: string;
-  name?: string;
+  kind: "admin";
+  subjectId: string;
   expiresAt: string;
+}
+
+function mapAdmin(row: Record<string, unknown>): AdminUser {
+  return {
+    id: String(row.id),
+    username: String(row.username),
+    passwordHash: String(row.password_hash),
+    displayName: String(row.display_name),
+    active: Boolean(row.active),
+    lastLoginAt: row.last_login_at ? String(row.last_login_at) : null,
+  };
+}
+
+function mapCustomer(row: Record<string, unknown>): CustomerProfile {
+  return {
+    id: String(row.id),
+    authUserId: row.auth_user_id ? String(row.auth_user_id) : null,
+    name: String(row.name ?? "Cliente Glam Lyn"),
+    phone: row.phone ? String(row.phone) : null,
+    email: row.email ? String(row.email) : null,
+    points: Number(row.points ?? 0),
+    hasAccount: Boolean(row.has_account),
+    createdAt: String(row.created_at),
+    updatedAt: String(row.updated_at),
+  };
 }
 
 export function hashPassword(input: string) {
@@ -29,21 +53,6 @@ export function verifyPassword(input: string, expectedHash: string) {
   return timingSafeEqual(actual, expected);
 }
 
-export function createSessionRecord(subjectId: string): SessionRecord {
-  const token = crypto.randomUUID();
-  const now = new Date();
-  const expires = new Date(now);
-  expires.setDate(now.getDate() + 7);
-
-  return {
-    id: crypto.randomUUID(),
-    token,
-    subjectId,
-    createdAt: now.toISOString(),
-    expiresAt: expires.toISOString(),
-  };
-}
-
 function signValue(value: string) {
   return createHmac("sha256", SESSION_SECRET).update(value).digest("base64url");
 }
@@ -53,7 +62,7 @@ export function createSignedSessionToken(payload: SignedSessionPayload) {
   return `${encoded}.${signValue(encoded)}`;
 }
 
-export function verifySignedSessionToken(token: string | undefined) {
+function verifySignedSessionToken(token: string | undefined) {
   if (!token) {
     return null;
   }
@@ -83,81 +92,69 @@ export function verifySignedSessionToken(token: string | undefined) {
   return payload;
 }
 
-export async function getCookieValue(name: string) {
+export async function getAdminSession(): Promise<AdminUser | null> {
   const cookieStore = await cookies();
-  return cookieStore.get(name)?.value;
+  const token = cookieStore.get(ADMIN_COOKIE)?.value;
+  const payload = verifySignedSessionToken(token);
+
+  if (!payload?.subjectId || payload.kind !== "admin") {
+    return null;
+  }
+
+  const supabase = getSupabaseAdmin();
+  const { data, error } = await supabase
+    .from("admin_users")
+    .select("*")
+    .eq("id", payload.subjectId)
+    .eq("active", true)
+    .maybeSingle();
+
+  if (error) {
+    throw new Error(`Lecture admin impossible: ${error.message}`);
+  }
+
+  return data ? mapAdmin(data as Record<string, unknown>) : null;
 }
 
-export async function getAdminSession(db: DatabaseShape): Promise<AdminUser | null> {
-  const token = await getCookieValue(ADMIN_COOKIE);
-  const signedPayload = verifySignedSessionToken(token);
-  if (signedPayload?.kind === "admin" && signedPayload.subjectId) {
-    return (
-      db.adminUsers.find(
-        (user) => user.id === signedPayload.subjectId && user.active,
-      ) ?? null
-    );
-  }
+export async function getCustomerSession(): Promise<CustomerProfile | null> {
+  const supabase = await getSupabaseServerClient();
+  const {
+    data: { user },
+    error: authError,
+  } = await supabase.auth.getUser();
 
-  if (!token) {
+  if (authError || !user) {
     return null;
   }
 
-  const session = db.adminSessions.find(
-    (entry) => entry.token === token && new Date(entry.expiresAt) > new Date(),
-  );
+  const admin = getSupabaseAdmin();
+  const byAuth = await admin
+    .from("customer_profiles")
+    .select("*")
+    .eq("auth_user_id", user.id)
+    .maybeSingle();
 
-  if (!session) {
+  if (byAuth.error) {
+    throw new Error(`Lecture du compte client impossible: ${byAuth.error.message}`);
+  }
+
+  if (byAuth.data) {
+    return mapCustomer(byAuth.data as Record<string, unknown>);
+  }
+
+  if (!user.email) {
     return null;
   }
 
-  return db.adminUsers.find((user) => user.id === session.subjectId && user.active) ?? null;
-}
+  const byEmail = await admin
+    .from("customer_profiles")
+    .select("*")
+    .eq("email", user.email.toLowerCase())
+    .maybeSingle();
 
-export async function getCustomerSession(db: DatabaseShape): Promise<CustomerProfile | null> {
-  const token = await getCookieValue(CUSTOMER_COOKIE);
-  const signedPayload = verifySignedSessionToken(token);
-  if (signedPayload?.kind === "customer") {
-    if (signedPayload.subjectId) {
-      const customer = db.customers.find(
-        (entry) => entry.id === signedPayload.subjectId,
-      );
-      if (customer) {
-        return customer;
-      }
-    }
-
-    if (signedPayload.phone) {
-      const customerByPhone = db.customers.find(
-        (entry) => entry.phone === signedPayload.phone,
-      );
-      if (customerByPhone) {
-        return customerByPhone;
-      }
-
-      return {
-        id: signedPayload.subjectId ?? `session_${signedPayload.phone}`,
-        name: signedPayload.name ?? "Cliente Glam Lyn",
-        phone: signedPayload.phone,
-        points: 0,
-        hasAccount: true,
-        createdAt: new Date().toISOString(),
-        updatedAt: new Date().toISOString(),
-      };
-    }
+  if (byEmail.error) {
+    throw new Error(`Lecture du compte client impossible: ${byEmail.error.message}`);
   }
 
-  if (!token) {
-    return null;
-  }
-
-  const session = db.customerSessions.find(
-    (entry) => entry.token === token && new Date(entry.expiresAt) > new Date(),
-  );
-
-  if (!session) {
-    return null;
-  }
-
-  return db.customers.find((customer) => customer.id === session.subjectId) ?? null;
+  return byEmail.data ? mapCustomer(byEmail.data as Record<string, unknown>) : null;
 }

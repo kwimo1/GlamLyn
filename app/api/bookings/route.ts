@@ -22,7 +22,9 @@ export async function POST(request: Request) {
       totalPriceDzd: result.booking.totalPriceDzd,
       totalDurationMinutes: result.booking.totalDurationMinutes,
       summary: result.summary,
-      smsStatus: result.notification.status,
+      notificationStatus: result.notification.status,
+      accountLinkStatus: result.accountLink.status,
+      accountLinkMessage: result.accountLink.message,
     });
   } catch (caughtError) {
     const message =

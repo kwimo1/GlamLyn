@@ -33,7 +33,7 @@ export function SiteHeader({ compact = false }: { compact?: boolean }) {
             href="/reservation"
             className="inline-flex min-h-11 items-center justify-center rounded-full border border-[var(--gold-deep)] bg-[linear-gradient(135deg,var(--gold),#d3b179)] px-4 text-sm font-semibold text-white shadow-[0_10px_22px_rgba(137,97,42,0.22)] transition hover:brightness-105"
           >
-            Book now
+            Réserver
           </Link>
         </div>
 

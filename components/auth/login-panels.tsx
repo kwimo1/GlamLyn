@@ -1,84 +1,60 @@
 "use client";
 
-import { ShieldCheck, Smartphone } from "lucide-react";
-import { startTransition, useState } from "react";
+import { Mail, ShieldCheck } from "lucide-react";
+import { startTransition, useEffect, useState } from "react";
+import { useSearchParams } from "next/navigation";
 
 type Tab = "client" | "admin";
 
 export function LoginPanels() {
+  const searchParams = useSearchParams();
   const [tab, setTab] = useState<Tab>("client");
   const [customerName, setCustomerName] = useState("");
-  const [customerPhone, setCustomerPhone] = useState("");
-  const [customerCode, setCustomerCode] = useState("");
-  const [demoCode, setDemoCode] = useState<string | null>(null);
-  const [customerStep, setCustomerStep] = useState<"request" | "verify">("request");
+  const [customerEmail, setCustomerEmail] = useState("");
   const [adminUsername, setAdminUsername] = useState("");
   const [adminPassword, setAdminPassword] = useState("");
   const [status, setStatus] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
 
-  async function requestOtp() {
+  useEffect(() => {
+    const callbackError = searchParams.get("erreur");
+    if (callbackError) {
+      setTab("client");
+      setError(callbackError);
+    }
+  }, [searchParams]);
+
+  async function requestMagicLink() {
     setBusy(true);
     setError(null);
     setStatus(null);
 
     try {
-      const response = await fetch("/api/auth/customer/request-otp", {
+      const response = await fetch("/api/auth/customer/magic-link", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
         },
         body: JSON.stringify({
-          phone: customerPhone,
+          email: customerEmail,
           name: customerName,
         }),
       });
+
       const payload = await response.json();
       if (!response.ok) {
-        throw new Error(payload.error ?? "Impossible d'envoyer le code.");
+        throw new Error(payload.error ?? "Impossible d'envoyer le lien magique.");
       }
 
       startTransition(() => {
-        setDemoCode(payload.demoCode ?? null);
-        setStatus("Code envoyé. Vérifiez votre SMS.");
-        setCustomerStep("verify");
+        setStatus("Lien envoyé. Vérifiez votre boîte mail pour accéder à votre compte.");
       });
     } catch (caughtError) {
       setError(
-        caughtError instanceof Error ? caughtError.message : "Impossible d'envoyer le code.",
-      );
-    } finally {
-      setBusy(false);
-    }
-  }
-
-  async function verifyOtp() {
-    setBusy(true);
-    setError(null);
-    setStatus(null);
-
-    try {
-      const response = await fetch("/api/auth/customer/verify-otp", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          phone: customerPhone,
-          code: customerCode,
-          name: customerName,
-        }),
-      });
-      const payload = await response.json();
-      if (!response.ok) {
-        throw new Error(payload.error ?? "Vérification impossible.");
-      }
-
-      window.location.href = "/compte";
-    } catch (caughtError) {
-      setError(
-        caughtError instanceof Error ? caughtError.message : "Vérification impossible.",
+        caughtError instanceof Error
+          ? caughtError.message
+          : "Impossible d'envoyer le lien magique.",
       );
     } finally {
       setBusy(false);
@@ -101,6 +77,7 @@ export function LoginPanels() {
           password: adminPassword,
         }),
       });
+
       const payload = await response.json();
       if (!response.ok) {
         throw new Error(payload.error ?? "Connexion admin impossible.");
@@ -128,7 +105,8 @@ export function LoginPanels() {
           Deux accès, un même salon.
         </h2>
         <p className="mt-4 text-sm leading-7 text-[rgba(255,244,220,0.78)]">
-          La cliente gère ses rendez-vous par code SMS. L’administration suit le planning, les services, les photos et les avis.
+          La cliente se connecte par lien magique reçu par e-mail. L’administration suit le
+          planning, les services, les photos et les avis depuis un accès séparé.
         </p>
 
         <div className="mt-8 space-y-4 text-sm leading-7 text-[rgba(255,244,220,0.72)]">
@@ -136,13 +114,14 @@ export function LoginPanels() {
             <strong className="text-[var(--surface)]">
               Créez votre compte et gagnez 1 point maintenant
             </strong>
-            , puis 1 point à chaque réservation.
+            , puis 1 point à chaque réservation terminée.
           </p>
           <p>
-            Mode démo inclus: si aucun fournisseur SMS n’est configuré, le code de test s’affiche ici après demande.
+            Les confirmations, reports, annulations et rappels passent désormais par e-mail.
           </p>
           <p>
-            Accès admin de démonstration: <strong>owner-glamlyn</strong> / <strong>GlamLyn2026!</strong>
+            Accès admin de démonstration: <strong>owner-glamlyn</strong> /{" "}
+            <strong>GlamLyn2026!</strong>
           </p>
         </div>
       </aside>
@@ -172,11 +151,11 @@ export function LoginPanels() {
         {tab === "client" ? (
           <div className="space-y-5">
             <div className="flex items-center gap-3">
-              <Smartphone className="h-5 w-5 text-[var(--gold-deep)]" />
+              <Mail className="h-5 w-5 text-[var(--gold-deep)]" />
               <div>
-                <p className="text-sm font-semibold text-[var(--ink)]">Connexion par téléphone</p>
+                <p className="text-sm font-semibold text-[var(--ink)]">Connexion par e-mail</p>
                 <p className="text-sm text-[var(--muted-ink)]">
-                  Un code SMS suffit pour accéder à vos réservations et à vos points.
+                  Un lien magique suffit pour accéder à vos réservations et à vos points.
                 </p>
               </div>
             </div>
@@ -192,33 +171,16 @@ export function LoginPanels() {
                 />
               </label>
               <label className="space-y-2 text-sm">
-                <span>Téléphone</span>
+                <span>E-mail</span>
                 <input
-                  value={customerPhone}
-                  onChange={(event) => setCustomerPhone(event.target.value)}
+                  type="email"
+                  value={customerEmail}
+                  onChange={(event) => setCustomerEmail(event.target.value)}
                   className="min-h-12 w-full rounded-2xl border border-[var(--line)] bg-white/80 px-4 outline-none focus:border-[var(--gold)]"
-                  placeholder="+213..."
+                  placeholder="vous@exemple.com"
                 />
               </label>
             </div>
-
-            {customerStep === "verify" ? (
-              <label className="space-y-2 text-sm">
-                <span>Code reçu</span>
-                <input
-                  value={customerCode}
-                  onChange={(event) => setCustomerCode(event.target.value)}
-                  className="min-h-12 w-full rounded-2xl border border-[var(--line)] bg-white/80 px-4 outline-none focus:border-[var(--gold)]"
-                  placeholder="123456"
-                />
-              </label>
-            ) : null}
-
-            {demoCode ? (
-              <p className="rounded-2xl bg-[rgba(181,138,71,0.12)] px-4 py-3 text-sm text-[var(--ink)]">
-                Code de démonstration: <strong>{demoCode}</strong>
-              </p>
-            ) : null}
 
             {status ? (
               <p className="rounded-2xl bg-[rgba(181,138,71,0.12)] px-4 py-3 text-sm text-[var(--ink)]">
@@ -235,14 +197,10 @@ export function LoginPanels() {
             <button
               type="button"
               disabled={busy}
-              onClick={() => void (customerStep === "request" ? requestOtp() : verifyOtp())}
+              onClick={() => void requestMagicLink()}
               className="inline-flex min-h-12 w-full items-center justify-center rounded-full bg-[var(--ink)] px-5 text-sm font-semibold text-[var(--surface)] disabled:opacity-60"
             >
-              {busy
-                ? "Un instant..."
-                : customerStep === "request"
-                  ? "Recevoir mon code"
-                  : "Accéder à mon compte"}
+              {busy ? "Envoi..." : "Recevoir mon lien magique"}
             </button>
           </div>
         ) : (
@@ -252,7 +210,7 @@ export function LoginPanels() {
               <div>
                 <p className="text-sm font-semibold text-[var(--ink)]">Connexion administration</p>
                 <p className="text-sm text-[var(--muted-ink)]">
-                  Identifiant spécifique pour le dashboard owner et la gestion du site.
+                  Identifiant spécifique pour le tableau de bord et la gestion du site.
                 </p>
               </div>
             </div>
@@ -291,7 +249,7 @@ export function LoginPanels() {
               onClick={() => void loginAdmin()}
               className="inline-flex min-h-12 w-full items-center justify-center rounded-full bg-[var(--ink)] px-5 text-sm font-semibold text-[var(--surface)] disabled:opacity-60"
             >
-              {busy ? "Connexion..." : "Ouvrir le dashboard"}
+              {busy ? "Connexion..." : "Ouvrir le tableau de bord"}
             </button>
           </div>
         )}

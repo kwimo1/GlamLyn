@@ -1,9 +1,8 @@
 "use server";
 
-import { promises as fs } from "node:fs";
-import path from "node:path";
 import { getAdminSession } from "@/lib/auth";
-import { getWritableUploadsDir, readDb } from "@/lib/mock-db";
+import { getSupabaseAdmin } from "@/lib/supabase/admin";
+import { getSupabaseMediaBucket } from "@/lib/supabase/config";
 import {
   addUploadedMedia,
   cancelBookingByAdmin,
@@ -18,19 +17,18 @@ import {
 import { generateId } from "@/lib/utils";
 
 async function requireAdmin() {
-  const db = await readDb();
-  const admin = await getAdminSession(db);
+  const admin = await getAdminSession();
   if (!admin) {
     throw new Error("Accès admin requis.");
   }
 
-  return { db, admin };
+  return admin;
 }
 
 export async function upsertServiceAction(formData: FormData) {
   await requireAdmin();
   await upsertService({
-    id: (formData.get("id")?.toString() || undefined) ?? undefined,
+    id: formData.get("id")?.toString() || undefined,
     name: formData.get("name")?.toString() ?? "",
     description: formData.get("description")?.toString() ?? "",
     categoryId:
@@ -104,14 +102,23 @@ export async function uploadMediaAction(formData: FormData) {
 
   const mediaId = generateId("media");
   const extension = file.name.split(".").pop() || "bin";
-  const uploadsDir = await getWritableUploadsDir();
-  if (!uploadsDir) {
-    throw new Error("Stockage média temporairement indisponible.");
+  const storagePath = `${mediaId}.${extension}`;
+  const bucket = getSupabaseMediaBucket();
+  const supabase = getSupabaseAdmin();
+  const bytes = await file.arrayBuffer();
+
+  const upload = await supabase.storage
+    .from(bucket)
+    .upload(storagePath, Buffer.from(bytes), {
+      contentType: file.type,
+      upsert: false,
+    });
+
+  if (upload.error) {
+    throw new Error(`Upload média impossible: ${upload.error.message}`);
   }
 
-  const storagePath = path.join(uploadsDir, `${mediaId}.${extension}`);
-  const arrayBuffer = await file.arrayBuffer();
-  await fs.writeFile(storagePath, Buffer.from(arrayBuffer));
+  const { data } = supabase.storage.from(bucket).getPublicUrl(storagePath);
 
   await addUploadedMedia({
     id: mediaId,
@@ -120,7 +127,7 @@ export async function uploadMediaAction(formData: FormData) {
     section:
       (formData.get("section")?.toString() as "hero" | "gallery" | "instagram" | "reviews") ??
       "gallery",
-    src: `/api/media/${mediaId}`,
+    src: data.publicUrl,
     kind: "upload",
     order: Number(formData.get("order")?.toString() ?? "10"),
     uploadedAt: new Date().toISOString(),
@@ -130,11 +137,13 @@ export async function uploadMediaAction(formData: FormData) {
 }
 
 export async function deleteMediaAction(formData: FormData) {
-  const { db } = await requireAdmin();
+  await requireAdmin();
   const mediaId = formData.get("mediaId")?.toString() ?? "";
-  const asset = db.mediaAssets.find((entry) => entry.id === mediaId);
-  if (asset?.storagePath) {
-    await fs.rm(asset.storagePath, { force: true });
+  const storagePath = formData.get("storagePath")?.toString() ?? "";
+
+  if (storagePath) {
+    const supabase = getSupabaseAdmin();
+    await supabase.storage.from(getSupabaseMediaBucket()).remove([storagePath]);
   }
 
   await deleteMedia(mediaId);

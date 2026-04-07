@@ -1,11 +1,9 @@
 import { NextResponse } from "next/server";
 import { getAdminSession } from "@/lib/auth";
-import { readDb } from "@/lib/mock-db";
 import { exportCustomersCsv } from "@/lib/repository";
 
 export async function GET() {
-  const db = await readDb();
-  const admin = await getAdminSession(db);
+  const admin = await getAdminSession();
   if (!admin) {
     return NextResponse.json({ error: "Accès admin requis." }, { status: 401 });
   }

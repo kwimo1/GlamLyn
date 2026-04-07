@@ -5,6 +5,8 @@ import { loginAdmin } from "@/lib/repository";
 
 export async function POST(request: Request) {
   try {
+    const { hostname } = new URL(request.url);
+    const isLocalHost = hostname === "localhost" || hostname === "127.0.0.1";
     const body = (await request.json()) as {
       username?: string;
       password?: string;
@@ -31,12 +33,12 @@ export async function POST(request: Request) {
         expiresAt,
       }),
       {
-      httpOnly: true,
-      sameSite: "lax",
-      secure: process.env.NODE_ENV === "production",
-      path: "/",
-      expires: new Date(expiresAt),
-    },
+        httpOnly: true,
+        sameSite: "lax",
+        secure: process.env.NODE_ENV === "production" && !isLocalHost,
+        path: "/",
+        expires: new Date(expiresAt),
+      },
     );
 
     return NextResponse.json({

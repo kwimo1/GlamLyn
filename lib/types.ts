@@ -3,7 +3,6 @@ export type BookingStatus = "confirmed" | "completed" | "cancelled";
 export type ReviewStatus = "pending" | "published" | "rejected";
 export type MediaSection = "hero" | "gallery" | "instagram" | "reviews";
 export type NotificationType =
-  | "otp"
   | "booking_confirmation"
   | "booking_reminder"
   | "booking_cancelled"
@@ -71,9 +70,10 @@ export interface MediaAsset {
 
 export interface CustomerProfile {
   id: string;
+  authUserId?: string | null;
   name: string;
-  phone: string;
-  email?: string;
+  phone?: string | null;
+  email?: string | null;
   points: number;
   hasAccount: boolean;
   createdAt: string;
@@ -90,7 +90,7 @@ export interface Booking {
   endsAt: string;
   status: BookingStatus;
   source: "guest" | "account";
-  notes?: string;
+  notes?: string | null;
   createdAt: string;
   updatedAt: string;
 }
@@ -119,7 +119,7 @@ export interface InstagramReelItem {
   title: string;
   caption: string;
   coverAssetId?: string;
-  externalCoverUrl?: string;
+  externalCoverUrl?: string | null;
   reelUrl: string;
   published: boolean;
   order: number;
@@ -131,53 +131,21 @@ export interface AdminUser {
   passwordHash: string;
   displayName: string;
   active: boolean;
-  lastLoginAt?: string;
-}
-
-export interface SessionRecord {
-  id: string;
-  token: string;
-  subjectId: string;
-  createdAt: string;
-  expiresAt: string;
-}
-
-export interface OtpSession {
-  id: string;
-  phone: string;
-  code: string;
-  name?: string;
-  createdAt: string;
-  expiresAt: string;
-  consumedAt?: string;
+  lastLoginAt?: string | null;
 }
 
 export interface NotificationLog {
   id: string;
   type: NotificationType;
-  channel: "sms";
+  channel: "email";
   recipient: string;
+  subject: string;
   message: string;
-  status: "sent" | "mocked" | "failed";
-  provider: "twilio" | "mock";
+  status: "sent" | "failed" | "skipped";
+  provider: "resend" | "manual";
   createdAt: string;
-}
-
-export interface DatabaseShape {
-  serviceCategories: ServiceCategory[];
-  services: ServiceItem[];
-  businessSettings: BusinessSettings;
-  mediaAssets: MediaAsset[];
-  customers: CustomerProfile[];
-  bookings: Booking[];
-  siteReviews: SiteReview[];
-  googleReviewSnapshots: GoogleReviewSnapshot[];
-  instagramReels: InstagramReelItem[];
-  adminUsers: AdminUser[];
-  adminSessions: SessionRecord[];
-  customerSessions: SessionRecord[];
-  otpSessions: OtpSession[];
-  notificationLogs: NotificationLog[];
+  bookingId?: string | null;
+  customerId?: string | null;
 }
 
 export interface CreateBookingInput {
@@ -199,7 +167,6 @@ export interface AvailabilitySlot {
 }
 
 export interface DashboardMetrics {
-  estimatedRevenueDzd: number;
   bookingsThisWeek: number;
   cancellationsThisWeek: number;
   occupancyRate: number;

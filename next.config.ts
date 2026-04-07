@@ -1,7 +1,20 @@
 import type { NextConfig } from "next";
+import { getSupabaseImageHost } from "./lib/supabase/config";
+
+const supabaseHost = getSupabaseImageHost();
 
 const nextConfig: NextConfig = {
-  /* config options here */
+  images: {
+    remotePatterns: supabaseHost
+      ? [
+          {
+            protocol: "https",
+            hostname: supabaseHost,
+            pathname: "/storage/v1/object/public/**",
+          },
+        ]
+      : [],
+  },
 };
 
 export default nextConfig;

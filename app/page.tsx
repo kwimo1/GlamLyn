@@ -1,6 +1,6 @@
 import Image from "next/image";
 import Link from "next/link";
-import { ArrowRight, Clock3, MessageSquareText, ShieldCheck, Sparkles } from "lucide-react";
+import { ArrowRight, Clock3, Mail, ShieldCheck, Sparkles } from "lucide-react";
 import { PublicShell } from "@/components/layout/public-shell";
 import { RatingStars } from "@/components/ui/rating-stars";
 import { SectionHeading } from "@/components/ui/section-heading";
@@ -39,9 +39,9 @@ export default async function HomePage() {
             <div className="flex flex-col gap-3 sm:flex-row">
               <Link
                 href="/reservation"
-                className="inline-flex min-h-12 items-center justify-center gap-2 rounded-full bg-[var(--ink)] px-5 text-sm font-semibold text-[var(--surface)]"
+                className="inline-flex min-h-12 items-center justify-center gap-2 rounded-full border border-[var(--gold-deep)] bg-[linear-gradient(135deg,var(--gold),#d3b179)] px-5 text-sm font-semibold text-white shadow-[0_14px_28px_rgba(137,97,42,0.24)]"
               >
-                Book now
+                Réserver maintenant
                 <ArrowRight className="h-4 w-4" />
               </Link>
               <Link
@@ -60,13 +60,7 @@ export default async function HomePage() {
           <div className="relative flex items-end justify-end lg:min-h-[720px]">
             {heroPrimary ? (
               <div className="relative h-[66svh] w-full overflow-hidden rounded-[36px] border border-white/60 poster-shadow shimmer sm:h-[74svh] lg:h-[82svh]">
-                <Image
-                  src={heroPrimary.src}
-                  alt={heroPrimary.alt}
-                  fill
-                  priority
-                  className="object-cover"
-                />
+                <Image src={heroPrimary.src} alt={heroPrimary.alt} fill priority className="object-cover" />
                 <div className="absolute inset-0 bg-gradient-to-t from-[rgba(36,26,19,0.46)] via-transparent to-transparent" />
               </div>
             ) : null}
@@ -74,12 +68,7 @@ export default async function HomePage() {
             {heroSecondary ? (
               <div className="poster-shadow absolute -bottom-6 left-0 hidden w-52 overflow-hidden rounded-[28px] border border-white/60 bg-white/80 p-3 sm:block lg:-left-6 lg:w-60">
                 <div className="relative aspect-[4/5] overflow-hidden rounded-[22px]">
-                  <Image
-                    src={heroSecondary.src}
-                    alt={heroSecondary.alt}
-                    fill
-                    className="object-cover"
-                  />
+                  <Image src={heroSecondary.src} alt={heroSecondary.alt} fill className="object-cover" />
                 </div>
               </div>
             ) : null}
@@ -91,7 +80,7 @@ export default async function HomePage() {
         <SectionHeading
           eyebrow="Parcours simple"
           title="Réserver depuis son téléphone, sans friction."
-          description="Glam Lyn affiche clairement la durée, le prix total, les créneaux disponibles et les rappels SMS, tout en gardant un ton local et premium."
+          description="Glam Lyn affiche clairement la durée, le prix total, les créneaux disponibles et les notifications e-mail, tout en gardant un ton local et premium."
         />
 
         <div className="mt-10 grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
@@ -107,14 +96,14 @@ export default async function HomePage() {
               text: "Le calendrier ne montre que les créneaux réellement libres.",
             },
             {
-              icon: MessageSquareText,
-              title: "Suivi SMS complet",
+              icon: Mail,
+              title: "Suivi par e-mail",
               text: "Confirmation, rappel, annulation, report et demande d’avis.",
             },
             {
               icon: Sparkles,
               title: "Compte facultatif",
-              text: "Créer un compte rapporte 1 point, puis 1 point par réservation.",
+              text: "Créer un compte rapporte 1 point, puis 1 point à chaque réservation terminée.",
             },
           ].map((item) => (
             <div key={item.title} className="elevated-card rounded-[30px] p-5">
@@ -144,9 +133,7 @@ export default async function HomePage() {
               </div>
               <div>
                 <p className="text-lg font-semibold text-[var(--ink)]">{service.name}</p>
-                <p className="mt-2 text-sm leading-7 text-[var(--muted-ink)]">
-                  {service.description}
-                </p>
+                <p className="mt-2 text-sm leading-7 text-[var(--muted-ink)]">{service.description}</p>
               </div>
               <div className="text-left sm:text-right">
                 <p className="text-base font-semibold text-[var(--gold-deep)]">
@@ -169,7 +156,9 @@ export default async function HomePage() {
             description="L’admin peut téléverser, remplacer, réordonner et retirer les images des sections principales à tout moment."
           />
           <p className="max-w-md text-sm leading-7 text-[var(--muted-ink)]">
-            Les visuels ci-dessous sont des placeholders premium. Remplacez-les par vos propres photos pour refléter le travail réel du salon et renforcer la confiance dès le premier écran.
+            Les visuels ci-dessous sont des placeholders premium. Remplacez-les par vos propres
+            photos pour refléter le travail réel du salon et renforcer la confiance dès le premier
+            écran.
           </p>
         </div>
 
@@ -187,7 +176,7 @@ export default async function HomePage() {
         </div>
       </section>
 
-      <section id="reels" className="page-frame scroll-mt-32 px-4 py-14 sm:px-6">
+      <section className="page-frame px-4 py-14 sm:px-6">
         <SectionHeading
           eyebrow="Avis"
           title="Des retours de clientes du site et de Google."
@@ -221,7 +210,7 @@ export default async function HomePage() {
         </div>
       </section>
 
-      <section className="page-frame px-4 py-14 sm:px-6">
+      <section id="reels" className="page-frame scroll-mt-32 px-4 py-14 sm:px-6">
         <SectionHeading
           eyebrow="Instagram"
           title="Reels mis en avant par l’administration."
@@ -263,10 +252,12 @@ export default async function HomePage() {
                 Prête à réserver
               </p>
               <h2 className="mt-4 max-w-3xl font-[family-name:var(--font-display)] text-5xl leading-none text-[var(--ink)]">
-                Une réservation claire pour la cliente, un suivi complet pour l’owner.
+                Une réservation claire pour la cliente, un suivi complet pour la gérante.
               </h2>
               <p className="mt-4 max-w-2xl text-sm leading-7 text-[var(--muted-ink)]">
-                Réservez sans paiement en ligne, recevez vos SMS, créez votre compte si vous le souhaitez et laissez l’administration gérer photos, services, avis et planning depuis un seul dashboard.
+                Réservez sans paiement en ligne, recevez vos e-mails, créez votre compte si vous le
+                souhaitez et laissez l’administration gérer photos, services, avis et planning depuis
+                un seul tableau de bord.
               </p>
             </div>
             <Link

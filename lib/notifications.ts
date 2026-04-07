@@ -1,76 +1,114 @@
-import type { DatabaseShape, NotificationLog, NotificationType } from "@/lib/types";
+import { Resend } from "resend";
 import { generateId } from "@/lib/utils";
+import type { NotificationLog, NotificationType } from "@/lib/types";
+import { getSupabaseAdmin } from "@/lib/supabase/admin";
 
-type SmsResult = Pick<NotificationLog, "status" | "provider">;
-
-async function sendTwilioSms(to: string, body: string): Promise<SmsResult> {
-  const accountSid = process.env.TWILIO_ACCOUNT_SID;
-  const authToken = process.env.TWILIO_AUTH_TOKEN;
-  const from = process.env.TWILIO_MESSAGING_SERVICE_SID ?? process.env.TWILIO_FROM;
-
-  if (!accountSid || !authToken || !from) {
-    return {
-      status: "mocked",
-      provider: "mock",
-    };
-  }
-
-  const params = new URLSearchParams();
-  params.set("To", to);
-  params.set("Body", body);
-
-  if (process.env.TWILIO_MESSAGING_SERVICE_SID) {
-    params.set("MessagingServiceSid", process.env.TWILIO_MESSAGING_SERVICE_SID);
-  } else {
-    params.set("From", from);
-  }
-
-  const response = await fetch(
-    `https://api.twilio.com/2010-04-01/Accounts/${accountSid}/Messages.json`,
-    {
-      method: "POST",
-      headers: {
-        Authorization: `Basic ${Buffer.from(`${accountSid}:${authToken}`).toString("base64")}`,
-        "Content-Type": "application/x-www-form-urlencoded",
-      },
-      body: params,
-    },
-  );
-
-  if (!response.ok) {
-    return {
-      status: "failed",
-      provider: "twilio",
-    };
-  }
-
-  return {
-    status: "sent",
-    provider: "twilio",
-  };
+interface EmailDeliveryInput {
+  type: NotificationType;
+  recipient: string;
+  subject: string;
+  message: string;
+  html?: string;
+  bookingId?: string | null;
+  customerId?: string | null;
 }
 
-export async function logSms(
-  db: DatabaseShape,
-  type: NotificationType,
-  recipient: string,
-  message: string,
-) {
-  const result = await sendTwilioSms(recipient, message);
+let resendClient: Resend | null = null;
+
+function getResendClient() {
+  const apiKey = process.env.RESEND_API_KEY?.trim();
+  if (!apiKey) {
+    return null;
+  }
+
+  if (!resendClient) {
+    resendClient = new Resend(apiKey);
+  }
+
+  return resendClient;
+}
+
+function getResendFrom() {
+  return process.env.RESEND_FROM_EMAIL?.trim() || "";
+}
+
+function toPlainText(htmlOrText: string) {
+  return htmlOrText
+    .replace(/<br\s*\/?>/gi, "\n")
+    .replace(/<\/p>/gi, "\n\n")
+    .replace(/<[^>]+>/g, "")
+    .replace(/\n{3,}/g, "\n\n")
+    .trim();
+}
+
+async function insertNotificationLog(log: NotificationLog) {
+  const supabase = getSupabaseAdmin();
+  const { error } = await supabase.from("notification_logs").insert({
+    id: log.id,
+    type: log.type,
+    channel: log.channel,
+    recipient: log.recipient,
+    subject: log.subject,
+    message: log.message,
+    status: log.status,
+    provider: log.provider,
+    booking_id: log.bookingId ?? null,
+    customer_id: log.customerId ?? null,
+    created_at: log.createdAt,
+  });
+
+  if (error) {
+    throw new Error(`Journal email impossible à écrire: ${error.message}`);
+  }
+}
+
+export async function logEmail(input: EmailDeliveryInput) {
+  const now = new Date().toISOString();
+  const resend = getResendClient();
+  const from = getResendFrom();
+
+  let status: NotificationLog["status"] = "skipped";
+  let provider: NotificationLog["provider"] = "manual";
+
+  if (resend && from && input.recipient) {
+    try {
+      const result = await resend.emails.send({
+        from,
+        to: input.recipient,
+        subject: input.subject,
+        text: toPlainText(input.message),
+        html:
+          input.html ??
+          `<div style="font-family:Arial,sans-serif;line-height:1.7;color:#241a13;">${input.message}</div>`,
+      });
+
+      if (result.error) {
+        status = "failed";
+        provider = "resend";
+      } else {
+        status = "sent";
+        provider = "resend";
+      }
+    } catch {
+      status = "failed";
+      provider = "resend";
+    }
+  }
+
   const log: NotificationLog = {
     id: generateId("notif"),
-    type,
-    channel: "sms",
-    recipient,
-    message,
-    status: result.status,
-    provider: result.provider,
-    createdAt: new Date().toISOString(),
+    type: input.type,
+    channel: "email",
+    recipient: input.recipient,
+    subject: input.subject,
+    message: toPlainText(input.message),
+    status,
+    provider,
+    createdAt: now,
+    bookingId: input.bookingId ?? null,
+    customerId: input.customerId ?? null,
   };
 
-  db.notificationLogs.unshift(log);
-  return {
-    ...result,
-    demoCode: result.provider === "mock" && type === "otp" ? message.match(/\b(\d{6})\b/)?.[1] : undefined,
-  };
+  await insertNotificationLog(log);
+  return log;
 }

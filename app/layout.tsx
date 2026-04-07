@@ -17,7 +17,7 @@ const bodyFont = Manrope({
 export const metadata: Metadata = {
   title: "Glam Lyn | Centre de beauté à Alger",
   description:
-    "Réservation phone-first, galerie du salon, fidélité, avis et suivi SMS pour Glam Lyn.",
+    "Réservation phone-first, galerie du salon, fidélité, avis et notifications e-mail pour Glam Lyn.",
 };
 
 export default function RootLayout({
